@@ -1,2 +1,3 @@
 # react-kkot-inventory-web
-react inventory app for NJ kkottongnae
+
+NJ kkottongnae inventory project (web)

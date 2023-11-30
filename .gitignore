@@ -26,6 +26,7 @@ dist-ssr
 # Files
 package-lock.json
 yarn.lock
+FETCH_HEAD
 
 # Folders
 credentials/
