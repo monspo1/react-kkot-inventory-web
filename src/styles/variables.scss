@@ -1,0 +1,47 @@
+.div-for-home-tab-content {
+  position: absolute;
+  top: 0px;
+  margin-top: 45px;
+  margin-left: -15px;
+  width: 98%;
+  height: 100%;
+}
+
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.spinner-border {
+  position: absolute;
+  top: 30%;
+  z-index: 33;
+}
+
+.preview-material-react-table-container {
+  margin-top: 50px;
+}
+
+.uploaded-content-preview {
+  color: #4fa2ea;
+}
+
+.uploaded-content-preview {
+  margin-top: 10px;
+}
+
+.div-for-master-box-items-buttons {
+  position: absolute;
+  top: 63px;
+  right: 23px;
+  z-index: 100;
+}
+
+.div-for-master-box-items-material-react-table {
+  margin-top: 35px; /* Adjust this to the height of masterBoxItemsButtons */
+}
+
+.right-positioned-elements {
+  display: flex;
+  justify-content: flex-end;
+}
