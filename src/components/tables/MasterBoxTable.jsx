@@ -259,7 +259,7 @@ const MasterBoxTable = () => {
                 onClick={setShowAddNewItemModal}>Add New Item</Button>
             <Button variant="outlined" size="small" startIcon={<UploadIcon />}
                 onClick={setShowUploadFileModal}>Upload New File</Button>
-            <Button variant="outlined" size="small" startIcon={<CloudUploadIcon />} // disabled
+            <Button variant="outlined" size="small" startIcon={<CloudUploadIcon />} disabled
                 onClick={uploadJsonToCollection}>Upload to Cloud</Button>
         </div>
     );

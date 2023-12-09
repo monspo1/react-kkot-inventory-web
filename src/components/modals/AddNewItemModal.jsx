@@ -7,6 +7,8 @@ import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import moment from 'moment';
 import SpinnerComp from './../common/SpinnerComp';
+import { addDoc, collection } from 'firebase/firestore'; 
+import { db } from '../../utils/firebase'; 
 
 import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
@@ -106,16 +108,17 @@ const AddNewItemModal = (props) => {
       // dispatch(setLoaderStatus(true));
 
       const payloadObj = {
-        item_id: `master-item-${getUniqueId()}`,
-        item_barcode: barcode,
-        item_brand: brand,
-        item_content: content,
-        item_weight_oz: weight.oz,
-        item_weight_lbs: weight.lbs,
-        item_weight_g: weight.g,
-        item_price: price,
-        item_category: category, //category.replace(/ /g, ''), // remove spaces ... ??
+        barcode: barcode,
+        brand: brand,
+        category: category, //category.replace(/ /g, ''), // remove spaces ... ??
+        content: content,
         is_reviewed: true,
+        item_price: price,
+        item_weight_g: weight.g,
+        item_weight_lbs: weight.lbs,
+        item_weight_oz: weight.oz,
+        master_item_id: `master-item-${getUniqueId()}`,
+        review_reason: "",
         updated_at: moment().toISOString(),
         // updated_at: new Date().toISOString(), // ???
         // updated_at: moment().format('MM/DD/YYYY, h:mm A') // ???
@@ -123,7 +126,13 @@ const AddNewItemModal = (props) => {
       console.log('payloadObj: ', payloadObj)
 
       //# send api call to firestore
-      //...
+      addDoc(collection(db, 'master-items'), payloadObj)
+        .then((docRef) => {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch((error) => {
+          console.error("Error adding document: ", error);
+        });
       
       dispatch(setLoaderStatus(false));
       setCategoryError(false);
@@ -183,7 +192,7 @@ const AddNewItemModal = (props) => {
                 <option value="Flours">Flours (Ex: 가루로 된 것, 밀가루, 옥수수가루, 녹말가루, ...)</option>
                 <option value="Furniture">Furniture (Ex: 의자, 데스크, ...)</option>
                 <option value="Grains/Cereals">Grains / Cereals (Ex: 쌀, 콩, 잡곡, 시리얼, ...)</option>
-                <option value="MedicalSupplies">Medical Supplies (Ex: 의약품, 의료용품, 의료기구, ...)</option>
+                <option value="Medical-Supplies">Medical Supplies (Ex: 의약품, 의료용품, 의료기구, ...)</option>
                 <option value="Necessities/Coffee">Necessities / Coffee (Ex: 설탕, 소금, 소스, 양념, 숩, 커피, ...)</option>
                 <option value="Others">Others (Ex: 기타용품, 장난감, 우산, ...)</option>
                 <option value="Pastas/Noodles">Pastas / Noodles (Ex: 파스타, 스파게티, 라면, 국수, ...)</option>

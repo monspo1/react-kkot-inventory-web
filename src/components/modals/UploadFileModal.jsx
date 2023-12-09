@@ -56,8 +56,8 @@ const UploadFileModal = (props) => {
         // const jsonDataForCol = jsonData[0];
         let arrOfObjectsForRow = XLSX.utils.sheet_to_json(worksheet, { headers: 1 });
         const arrlen = arrOfObjectsForRow.length;
-        const uploadStart = 8000;
-        const uploadEnd = 16000;
+        const uploadStart = 16000;
+        const uploadEnd = arrlen;
         let barcodeMap = new Map();
         let categoryMap = new Map();
         arrOfObjectsForRow = arrOfObjectsForRow.slice(uploadStart, uploadEnd).map((r, idx) => { 
