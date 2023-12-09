@@ -129,10 +129,21 @@ const AddNewItemModal = (props) => {
       setCategoryError(false);
     }
     setValidated(true);
+    handleClose()
   };
 
   const handleClose = () => { 
     props.setShowModal(false);  
+    setBarcode('');
+    setBrand('');
+    setContent('');
+    setCategory('');
+    setWeight({oz: '', lbs: '', g: '' });
+    setPrice('');
+    setCategoryError(false);
+    setWeightError(false);
+    setPriceError(false);
+    setValidated(false);
   }
 
   // https://react-bootstrap.netlify.app/docs/forms/validation
@@ -145,7 +156,7 @@ const AddNewItemModal = (props) => {
         <Modal.Body>
           <Form.Group className="mb-3" controlId="formForBarcode">
             <Form.Label style={{ fontWeight: '700'}}>BARCODE</Form.Label>
-            <Form.Control required type="text" placeholder="Enter a barcode" value={barcode} onChange={handleBarcodeChange} />
+            <Form.Control required type="text" placeholder="Enter a barcode" value={barcode} onChange={handleBarcodeChange}/>
             <Form.Control.Feedback type="invalid">Barcode should have non-empty strings</Form.Control.Feedback>
           </Form.Group>
 
@@ -166,17 +177,17 @@ const AddNewItemModal = (props) => {
           <Form.Control as="select" required aria-label="Category select" value={category} onChange={handleSelectForCategoryChange} 
             isInvalid={categoryError} className={categoryError ? 'is-invalid' : ''} >
                 <option value="">Please select a category</option>
-                <option value="Cans / Glasses">Cans / Glasses (Ex: 캔 음식, 보존 음식류, ...)</option>
-                <option value="Clothing / Shoes">Clothing / Shoes (Ex: 의류, 천, 신발류, ...)</option>
-                <option value="Diaper / Pads / Etc">Diaper / Pads / Etc (Ex: 기저귀, 패드, 환자용 깔개, ...)</option>
+                <option value="Cans/Glasses">Cans / Glasses (Ex: 캔 음식, 보존 음식류, ...)</option>
+                <option value="Clothing/Shoes">Clothing / Shoes (Ex: 의류, 천, 신발류, ...)</option>
+                <option value="Diaper/Pads/Etc">Diaper / Pads / Etc (Ex: 기저귀, 패드, 환자용 깔개, ...)</option>
                 <option value="Flours">Flours (Ex: 가루로 된 것, 밀가루, 옥수수가루, 녹말가루, ...)</option>
                 <option value="Furniture">Furniture (Ex: 의자, 데스크, ...)</option>
-                <option value="Grains / Cereals">Grains / Cereals (Ex: 쌀, 콩, 잡곡, 시리얼, ...)</option>
-                <option value="Medical Supplies">Medical Supplies (Ex: 의약품, 의료용품, 의료기구, ...)</option>
-                <option value="Necessities / Coffee">Necessities / Coffee (Ex: 설탕, 소금, 소스, 양념, 숩, 커피, ...)</option>
+                <option value="Grains/Cereals">Grains / Cereals (Ex: 쌀, 콩, 잡곡, 시리얼, ...)</option>
+                <option value="MedicalSupplies">Medical Supplies (Ex: 의약품, 의료용품, 의료기구, ...)</option>
+                <option value="Necessities/Coffee">Necessities / Coffee (Ex: 설탕, 소금, 소스, 양념, 숩, 커피, ...)</option>
                 <option value="Others">Others (Ex: 기타용품, 장난감, 우산, ...)</option>
                 <option value="Pastas/Noodles">Pastas / Noodles (Ex: 파스타, 스파게티, 라면, 국수, ...)</option>
-                <option value="Snacks / Juice">Snacks / Juice (Ex: 쿠키, 초콜렛, 캔디, 쥬스, 음료, ...)</option>
+                <option value="Snacks/Juice">Snacks / Juice (Ex: 쿠키, 초콜렛, 캔디, 쥬스, 음료, ...)</option>
             </Form.Control>
             { categoryError && <div className="invalid-feedback">Please choose a category.</div> }
           </Form.Group>
@@ -184,11 +195,11 @@ const AddNewItemModal = (props) => {
           <Form.Group className="mb-3" controlId="formForWeight">
             <Form.Label style={{ fontWeight: '700'}}>WEIGHT</Form.Label>
             <Form.Control type="text" placeholder="Enter a weight (oz)" required isInvalid={weightError} 
-              value={weight.oz} onChange={handleWeightChange('oz')}/>
+              value={weight.oz} onChange={handleWeightChange('oz')} style={{ marginBottom: '5px' }}/>
             <Form.Control type="text" placeholder="Enter a weight (lbs)" isInvalid={weightError} 
-              value={weight.lbs} onChange={handleWeightChange('lbs')}/>
+              value={weight.lbs} onChange={handleWeightChange('lbs')} style={{ marginBottom: '5px' }}/>
             <Form.Control type="text" placeholder="Enter a weight (g)" isInvalid={weightError} 
-              value={weight.g} onChange={handleWeightChange('g')}/>
+              value={weight.g} onChange={handleWeightChange('g')} style={{ marginBottom: '5px' }}/>
             { weightError && <div className="invalid-feedback">Weight should be a valid number</div> }
             { validated && weight.oz === '' && <div className="invalid-feedback">Weight should have a non-empty number</div> }
           </Form.Group>

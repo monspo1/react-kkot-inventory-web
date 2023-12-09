@@ -67,7 +67,7 @@ const LoginSignupModal = () => {
   // console.log('auth.currentUser: ', auth?.currentUser)
   return (<>
       { currentUser 
-        ? <span style={{ zIndex: 100 }}>{currentUser.email} <Button onClick={handleLogout}>LOG OUT</Button></span>
+        ? <span style={{ zIndex: 100, color: 'wheat', }}>{currentUser.email} <Button onClick={handleLogout}>LOG OUT</Button></span>
         : <Button onClick={handleModalOpen}>LOGIN</Button>
       }
       <Modal

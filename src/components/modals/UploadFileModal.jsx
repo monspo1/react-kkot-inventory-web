@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLoaderStatus, setMasterBoxItems, setBoxesData } from '../../actions/action'
-import { convertStringNonUndefinedToNumber, getUniqueId, getRandomTestDate, itemCategoryArr } from '../../utils/helpers'
+import { convertStringNonUndefinedToNumber, getUniqueId, snakeCaseWord, itemCategoryArr } from '../../utils/helpers'
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 // import moment from 'moment';
 import SpinnerComp from './../common/SpinnerComp';
-import { MaterialReactTable,
-    useMaterialReactTable,
-    // MRT_GlobalFilterTextField,
-    // MRT_ToggleFiltersButton, 
+import { MaterialReactTable, useMaterialReactTable,
+    // MRT_GlobalFilterTextField, MRT_ToggleFiltersButton, 
 } from 'material-react-table';
 import { columnsForMasterTable } from './../../constants/tableColumns'
 import * as XLSX from 'xlsx';  // working. We can use XLSX.read()
@@ -57,16 +55,20 @@ const UploadFileModal = (props) => {
         });
         // const jsonDataForCol = jsonData[0];
         let arrOfObjectsForRow = XLSX.utils.sheet_to_json(worksheet, { headers: 1 });
+        const arrlen = arrOfObjectsForRow.length;
+        const uploadStart = 8000;
+        const uploadEnd = 16000;
         let barcodeMap = new Map();
         let categoryMap = new Map();
-        arrOfObjectsForRow = arrOfObjectsForRow.map(r => { 
+        arrOfObjectsForRow = arrOfObjectsForRow.slice(uploadStart, uploadEnd).map((r, idx) => { 
             const tempBarcodeArr = barcodeMap.get(r.barcode) || [];
             tempBarcodeArr.push(r)
+            r.barcode = r.barcode.toString();
             barcodeMap.set(r.barcode, tempBarcodeArr);
-            
-            categoryMap.set(r.category, (categoryMap.get(r.category) || 0) + 1);
 
+            categoryMap.set(r.category, (categoryMap.get(r.category) || 0) + 1);
             r.master_item_id = `master-item-${getUniqueId()}`;
+
             if(r['unit_oz'] === undefined){
                 r['unit_oz'] = (r['unit_lbs'] !== undefined) ? r['unit_lbs'] * 16 : (r['unit_g'] !== undefined) ? r['unit_g'] * 0.035274 : r['unit_g'];
             }
@@ -78,6 +80,7 @@ const UploadFileModal = (props) => {
             // r.updated_at = getRandomTestDate();
             r.updated_at = new Date().toISOString(),
             r.is_reviewed = true;
+            r.review_reason = "";
             delete r['unit_oz'];
             delete r['unit_g'];
             delete r['unit_lbs'];
@@ -95,12 +98,16 @@ const UploadFileModal = (props) => {
         barcodeMap.forEach((objArr, barcode) => {
             if(objArr.length > 1) { 
                 // console.log('barcode: ', barcode, '=> ', objArr)
-                objArr.forEach(obj => obj.is_reviewed = false)
+                objArr.forEach(obj => { 
+                    obj.is_reviewed = false;
+                    obj.review_reason = 'duplicated barcode';
+                    return obj;
+                })
             }
         });
 
         categoryMap.forEach((count, category) => {
-            const index = itemCategoryArr.findIndex(i => i.label === category) 
+            const index = itemCategoryArr.findIndex(i => i.value === category) 
             console.log('category: ', category, ' | Correct? ', (index === -1) ? "No" : "Yes", ' | Count: ', count)
         })
         // arrOfObjectsForRow.filter(elem => elem.is_reviewed === false)
@@ -113,14 +120,47 @@ const UploadFileModal = (props) => {
         //     }
         // })
         
-        setDataForMasterBoxItemsLocal(arrOfObjectsForRow);
+        // setDataForMasterBoxItemsLocal(arrOfObjectsForRow);
+
+        // Temp for storing the correct category
+        const tempArrCorrectCategory = [];
+        arrOfObjectsForRow.forEach(elem => { 
+            //console.log(elem.category) //camelCaseWord
+            if(!elem.category) return;
+            let category = elem.category;
+            if(category.indexOf('/') > -1) {
+                category = category.split('/');
+                category = category.map(word => snakeCaseWord(word.trim()));
+                category = category.join('/');
+            } 
+            // else if(category.indexOf('-') > -1){
+            //     category = category.replace(/[-\s]/g, ' ').split(' ')
+            //     category = category.map(word => snakeCaseWord(word.trim()));
+            //     category = category.join('')
+            // }
+            elem.category = category;
+            // console.log(category)
+            const index = itemCategoryArr.findIndex(i => i.value === category) 
+            if(index > -1){
+                tempArrCorrectCategory.push(elem)
+            } else {
+                elem.is_reviewed = false;
+                elem.review_reason = "incorrect category";
+                tempArrCorrectCategory.push(elem)
+            }
+        })
+        // console.log('tempArrCorrectCategory: ', tempArrCorrectCategory)
+        // tempArrCorrectCategory.forEach(i => console.log(i.category))
         setDataForMaterialReactTable(arrOfObjectsForRow.slice(0, 5));
         dispatch(setLoaderStatus(false));
-        
+        tempArrCorrectCategory.forEach(i => console.log(i.barcode,  " | ", i.review_reason))
+        // setDataForMasterBoxItemsLocal(arrOfObjectsForRow);
+        setDataForMasterBoxItemsLocal(tempArrCorrectCategory);
         // TEMP
         // dispatch(setBoxesData(arrOfObjectsForRow))
     }
 
+    
     const handleClose = () => { 
         props.setShowModal(false);
         document.getElementsByClassName("file-upload-input")[0].value = '';
@@ -143,7 +183,9 @@ const UploadFileModal = (props) => {
         // setDataForMaterialReactTable([]);
         // setDataForMasterBoxItemsLocal([]);
         dispatch(setMasterBoxItems( dataForMasterBoxItemsLocal ));
+        handleClose()
 
+        //# Not working (upload is done by clicking Upload to cloud button)
         // await api.insertMasterBoxItems(dataForMasterBoxItemsLocal)
         //     .then(res => {
         //         console.log('uploaded res: ', res)
