@@ -3,11 +3,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { MaterialReactTable, useMaterialReactTable,} from 'material-react-table';
 import { columnsForMasterTable }  from '../../constants/tableColumns';
-import { setLoaderStatus, setMasterBoxItems } from '../../actions/action'
-import { collection, getDocs, Timestamp, writeBatch, doc, orderBy } from 'firebase/firestore'; 
+import { setInfoMessage, setLoaderStatus, setMasterBoxItems } from '../../actions/action'
+import { collection, getDocs, Timestamp, writeBatch, doc, query, where, orderBy, limit } from 'firebase/firestore'; 
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../utils/firebase'; 
-import moment from 'moment';
+// import moment from 'moment';
 
 import UploadFileModal from '../modals/UploadFileModal'
 import AddNewItemModal from '../modals/AddNewItemModal'
@@ -17,6 +17,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import AddIcon from '@mui/icons-material/AddCircle';
 import DownloadIcon from '@mui/icons-material/Download';
 import SpinnerComp from './../common/SpinnerComp';
+import CustomAlert from './../common/CustomAlert';
 
 import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
@@ -30,11 +31,14 @@ const MasterBoxTable = () => {
     const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
     const [page, setPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-
+    // const [error, setError] = useState(null)
+    const dispatch = useDispatch()
     const spinner = useSelector(state => state.loading);
     const masterBoxItems = useSelector(state => state.masterBoxItems);
     const columnsForMaterialTable = useMemo(() => columnsForMasterTable, []);
-    const dispatch = useDispatch()
+    const errorObject = useSelector(state => state.errorObject);
+    const infoMessage = useSelector(state => state.infoMessage);
+    
     
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -78,6 +82,7 @@ const MasterBoxTable = () => {
           return { ...data, id: doc.id };
         });
         console.log('masterBoxItems: ', receivedData)
+        dispatch(setInfoMessage("Received the masterBoxItems from Cloud"))
         setDataForMaterialReactTable(receivedData)
     };
 
@@ -163,7 +168,7 @@ const MasterBoxTable = () => {
         let tempData = Object.assign([], masterBoxItems);
         // let tempData = Object.assign([], masterBoxItems.slice(0, 50));
         // console.log(tempData);
-        //*
+        // /*
         const batchSize = 400;
         let batchNumber = 0;
 
@@ -189,7 +194,6 @@ const MasterBoxTable = () => {
         //*/
     }
     
-
     const mtable = useMaterialReactTable({
         columns: columnsForMaterialTable,
         data: dataForMaterialReactTable,
@@ -197,8 +201,8 @@ const MasterBoxTable = () => {
         page: page,
         onChangePage: handlePageChange,
         initialState: {
-            density: 'xs',
-            showColumnFilters: true,
+            density: 'compact',
+            showColumnFilters: false,
             sorting: [
                 {
                     id: 'updated_at',
@@ -221,6 +225,14 @@ const MasterBoxTable = () => {
                 return String(row.getValue(id)).startsWith(filterValue);
             },
         },
+        muiTableHeadCellProps: { // globally applicable (individual style should be in the column config)
+            sx: {
+                // background: '#0dcaf077',
+                background: '#eee',
+                borderRight: '1px solid rgba(224,224,224,1)',
+                color: 'black'
+            }
+        }
     });
 
     const uploadModalElem = (
@@ -240,20 +252,23 @@ const MasterBoxTable = () => {
     // https://mui.com/material-ui/material-icons/
     const buttonSetElem = (
         <div className="div-for-master-box-items-buttons">
-            <Button variant="outlined" size="small" disabled startIcon={<CloudUploadIcon />}
-                onClick={uploadJsonToCollection}>Upload to Cloud</Button>
-            <Button variant="outlined" size="small" startIcon={<UploadIcon />}
-                onClick={setShowUploadFileModal}>Upload New File</Button>
-            <Button variant="outlined" size="small" startIcon={<AddIcon />} 
-                onClick={setShowAddNewItemModal}>Add New Item</Button>
-            {/* <Button variant="outlined" size="small" color="error" onClick={(e) => deleteMasterBoxItems(e)}>Remove all box items</Button> */}
             <Button variant="outlined" size="small"  startIcon={<DownloadIcon />} 
                 onClick={exportFileToJSON}>Export (JSON)</Button>
+            {/* <Button variant="outlined" size="small" color="error" onClick={(e) => deleteMasterBoxItems(e)}>Remove all box items</Button> */}
+            <Button variant="outlined" size="small" startIcon={<AddIcon />} 
+                onClick={setShowAddNewItemModal}>Add New Item</Button>
+            <Button variant="outlined" size="small" startIcon={<UploadIcon />}
+                onClick={setShowUploadFileModal}>Upload New File</Button>
+            <Button variant="outlined" size="small" startIcon={<CloudUploadIcon />} // disabled
+                onClick={uploadJsonToCollection}>Upload to Cloud</Button>
         </div>
     );
 
     const spinnerElem = spinner && <div style={{ position: 'absolute', top: '45%', left: '50%'}}>
         <SpinnerComp/></div>;
+
+    const errorElem = errorObject && <CustomAlert type="danger" message={errorObject.message} style={{}} duration={5000} />;
+    const infoElem = infoMessage && <CustomAlert type="info" message={infoMessage} style={{}} duration={5000} />;
 
     const linksElem = (
         <div className="data-grid-container" >
@@ -263,15 +278,23 @@ const MasterBoxTable = () => {
             <a href="https://www.material-react-table.dev/?path=/story/prop-playground--default">Material-react-table Storybook</a>{`  `}
         </div>
     )
+
+    const mainBoxElem = (
+        <div className="div-for-material-react-box-table">
+            <MaterialReactTable table={mtable} />
+        </div>
+    )
+        
     return (<>
         { uploadModalElem }
         { addNewItemModalElem }
+        { errorElem }
+        { infoElem }
         { buttonSetElem }
-        <div className="div-for-master-box-items-material-react-table">
-            <MaterialReactTable table={mtable} />
-        </div>
+        { mainBoxElem }
         {/* { spinnerElem } */}
         { linksElem }
+        
     </>)
 };
 

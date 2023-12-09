@@ -4,27 +4,29 @@ import { MaterialReactTable, useMaterialReactTable,} from 'material-react-table'
 import { columnsForBoxTable } from '../../constants/tableColumns';
 // import * as firebase from 'firebase/app';
 import 'firebase/firestore';
-import { collection, getDocs, Timestamp, writeBatch, doc } from 'firebase/firestore'; 
+import { collection, getDocs, Timestamp, writeBatch, doc, query, where, orderBy, limit } from 'firebase/firestore'; 
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../utils/firebase'; 
-import { setLoaderStatus, setBoxesData } from '../../actions/action'
+import { setLoaderStatus, setBoxesData, setBoxLabelData } from '../../actions/action'
 import Button from '@mui/material/Button';
 import PrintIcon from '@mui/icons-material/Print';
+import DownloadIcon from '@mui/icons-material/Download';
 import SpinnerComp from '../common/SpinnerComp';
+import moment from 'moment';
 
 const BoxTable = () => {
+  // const curLoggedinUser = useSelector(state => state.curLoggedinUser);
   const spinner = useSelector(state => state.loading);
   const boxesData = useSelector(state => state.boxesData);
-  // const curLoggedinUser = useSelector(state => state.curLoggedinUser);
+  const boxLabelData = useSelector(state => state.boxLabelData);
   const masterBoxItems = useSelector(state => state.masterBoxItems);
   const columns = useMemo(() => columnsForBoxTable, []);
-  const table = useMaterialReactTable({ data: boxesData, columns });
   const dispatch = useDispatch()
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // fetchBoxesData();
+        fetchBoxesData();
       }
     });    
     return () => unsubscribe(); // Clean up subscription on unmount
@@ -92,35 +94,130 @@ const BoxTable = () => {
     }, 1000);
   }
   
-  const testInsertBoxItemObj = () => {
-    // const boxItemObj = {
-    //   item_barcode: textForBarcode,
-    //   item_name: textForItemName,
-    //   item_expiration: textForExpiration,
-    //   item_weight_oz: textForWeightOz,
-    //   item_weight_lbs: textForWeightLbs,
-    //   item_weight_g: textForWeightG,
-    //   item_price: textForPrice,
-    //   item_category: getItemLabelByValue(checkedRadioBtnForCategory)
-    // }
-  }
-
   const printBtnHandler = (e) => {
     console.log('printBtnHandler clicked')
+    dispatch(setLoaderStatus(true))
+    // console.log('boxesData', boxesData)
+    fetchAllDataForPrint()
+  }
+
+  const fetchAllDataForPrint = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const boxCollection = collection(db, 'boxes');
+    const boxQuery = query(boxCollection, where("updated", ">=", today));
+    const boxSnapshot = await getDocs(boxQuery);
+    
+    const allBoxesData = await Promise.all(boxSnapshot.docs.map(async (doc) => {
+      const data = doc.data();
+      for (let field in data) {
+        if (data[field] instanceof Timestamp) {
+          data[field] = data[field].toDate().toISOString();
+        }
+      }
+      
+      const boxItemsCollection = collection(db, 'boxes', doc.id, 'box_items');
+      const boxItemsSnapshot = await getDocs(boxItemsCollection);
+      
+      const boxItemsData = boxItemsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        for (let field in data) {
+          if (data[field] instanceof Timestamp) {
+            data[field] = data[field].toDate().toISOString();
+          }
+        }
+        return { ...data, id: doc.id };
+      });
+      
+      return { ...data, id: doc.id, box_items: boxItemsData };
+    }));
+    
+    // console.log('allBoxesData: ', allBoxesData); 
+    dispatch(setBoxLabelData(allBoxesData));
+
+    let str = 'LABEL, CONTENTS, , LABEL, CONTENTS\n';
+    allBoxesData.forEach((box, idx) => {
+      // console.log('box: ', box)
+      let localstr = ''; //box.box_initial
+      box.box_items.forEach((item, index) => {
+        localstr += ((index === 0) ? box.box_initial : '') + ',' 
+          +`${item.item_content} ${item.item_weight_oz}oz /x${item.item_count} ${moment(item.item_expiration).format('MM/DD/YYYY')},,`
+          + ((index === 0) ? box.box_initial : '') + ',' 
+          +`${item.item_content} ${item.item_weight_oz}oz /x${item.item_count} ${moment(item.item_expiration).format('MM/DD/YYYY')}\n`;
+      });
+      str += localstr;
+      str += '\n\n'
+    });
+    // console.log(str)
+
+    dispatch(setLoaderStatus(false))
+    let blob = new Blob([str], { type: 'text/csv;charset=utf-8;' });
+    let url = URL.createObjectURL(blob);
+    let link = document.createElement("a");
+    if (link.download !== undefined) {
+        link.setAttribute("href", url);
+        link.setAttribute("download", `kkot_box_labels${moment().format('MM-DD-YYYY')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+  };
+
+  const exportFileToJSON = () => {
+    dispatch(setLoaderStatus(true))
+    // let copiedArrForExport = Object.assign([], boxLabelData);
+    // const resarr = []
+    // let str = 'LABEL, CONTENTS, , LABEL, CONTENTS';
+    // boxLabelData.forEach((box, idx) => {
+    //     console.log('box: ', box)
+    //   let localstr = ''; box.box_initial;
+    //   box.box_items.forEach((item, index) => {
+    //     localstr += (index === 0) ? box.box_initial : ''; //moment(props.row.createdAt).format('MMM/DD/YYYY, HH:MM:SS')
+    //     localstr += `${item.content} ${item.item_weight_oz} /x${item.item_count} ${moment(item.item_expiration).format('MM/DD/YYYY')}`
+    //     localstr += '\n';
+    //   });
+    //   str += localstr;
+    //   str += '\n\n'
+      
+    // });
+    // console.log(str)
+
+    // const blob = new Blob([JSON.stringify(copiedArrForExport)], { type: 'application/json' });
+    // const url = URL.createObjectURL(blob);
+    // const link = document.createElement('a');
+    // link.href = url;
+    // link.download = 'output.json';
+    // link.click();
+    dispatch(setLoaderStatus(false))
   }
 
   const buttonSetElem = (
     <div className="div-for-master-box-items-buttons">
         <Button variant="outlined" size="small" startIcon={<PrintIcon />} 
-            onClick={printBtnHandler}>PRINT</Button>
+            onClick={printBtnHandler}>PRINT LABEL</Button>
+        {/* <Button variant="outlined" size="small"  startIcon={<DownloadIcon />} 
+            onClick={exportFileToJSON}>Export</Button> */}
     </div>
-);
+  );
+
+  const mtable = useMaterialReactTable({ 
+    data: boxesData, columns,
+    initialState: { columnVisibility: { box_creator: false } },
+   });
+
+  const mainBoxElem = (
+    <div className="div-for-material-react-box-table">
+      <MaterialReactTable table={mtable} />
+    </div>
+  )
 
   return (
     <>
         <h3>Box Table</h3>
         { buttonSetElem }
-        <MaterialReactTable table={table} />
+        { mainBoxElem }
         { spinner && <SpinnerComp/> }
     </>
   );

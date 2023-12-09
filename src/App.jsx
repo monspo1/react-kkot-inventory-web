@@ -7,6 +7,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Home from './components/Home'
+import LoginSignupModal from './components/modals/LoginSignupModal'
 // import UploadBasic from './components/removeLater/UploadBasic'
 // import About from './components/removeLater/About'
 // import FileDetail from './components/details/FileDetail'
@@ -22,6 +23,9 @@ function App() {
           <Navbar bg="dark" variant="dark" className="navbar-top">
             <Container>
               <Navbar.Brand>KKot NJ Project</Navbar.Brand>
+              <div style={{ position: 'absolute', top: 5, right: '8px', zIndex: 2000, widt: '250px' }}>
+                <LoginSignupModal/>
+              </div>
             </Container>
           </Navbar>
 
