@@ -7,8 +7,6 @@ import { setInfoMessage, setLoaderStatus, setMasterBoxItems } from '../../action
 import { collection, getDocs, Timestamp, writeBatch, doc, query, where, orderBy, limit } from 'firebase/firestore'; 
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../utils/firebase'; 
-// import moment from 'moment';
-
 import UploadFileModal from '../modals/UploadFileModal'
 import AddNewItemModal from '../modals/AddNewItemModal'
 import Button from '@mui/material/Button';
@@ -18,10 +16,10 @@ import AddIcon from '@mui/icons-material/AddCircle';
 import DownloadIcon from '@mui/icons-material/Download';
 import SpinnerComp from './../common/SpinnerComp';
 import CustomAlert from './../common/CustomAlert';
-
-import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
-import set from 'date-fns/fp/set';
+// import moment from 'moment';
+// import 'react-data-grid/lib/styles.css';
+// import set from 'date-fns/fp/set';
 
 
 
@@ -286,6 +284,7 @@ const MasterBoxTable = () => {
     )
         
     return (<>
+        <h3>Master Items Table</h3>
         { uploadModalElem }
         { addNewItemModalElem }
         { errorElem }

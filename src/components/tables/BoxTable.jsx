@@ -10,16 +10,24 @@ import { db, auth } from '../../utils/firebase';
 import { setLoaderStatus, setBoxesData, setBoxLabelData } from '../../actions/action'
 import Button from '@mui/material/Button';
 import PrintIcon from '@mui/icons-material/Print';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DownloadIcon from '@mui/icons-material/Download';
 import SpinnerComp from '../common/SpinnerComp';
+import AddNewItemModal from '../modals/AddNewItemModal'
+import BoxItemsModal from '../modals/BoxItemsModal';
 import moment from 'moment';
 
 const BoxTable = () => {
+  const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
+  const [showBoxItemModal, setShowBoxItemModal] = useState(false);
+  
+
   // const curLoggedinUser = useSelector(state => state.curLoggedinUser);
   const spinner = useSelector(state => state.loading);
   const boxesData = useSelector(state => state.boxesData);
   const boxLabelData = useSelector(state => state.boxLabelData);
   const masterBoxItems = useSelector(state => state.masterBoxItems);
+  
   const columns = useMemo(() => columnsForBoxTable, []);
   const dispatch = useDispatch()
   
@@ -100,6 +108,12 @@ const BoxTable = () => {
     // console.log('boxesData', boxesData)
     fetchAllDataForPrint()
   }
+
+  const newBoxBtnHandler = () => {
+    console.log('new box')
+    setShowBoxItemModal(true)
+  }
+
 
   const fetchAllDataForPrint = async () => {
     const today = new Date();
@@ -196,12 +210,28 @@ const BoxTable = () => {
   const buttonSetElem = (
     <div className="div-for-master-box-items-buttons">
         <Button variant="outlined" size="small" startIcon={<PrintIcon />} 
-            onClick={printBtnHandler}>PRINT LABEL</Button>
+            onClick={printBtnHandler}>EXPORT LABEL</Button>
+        <Button variant="outlined" size="small" startIcon={<AddCircleOutlineIcon />} 
+            onClick={newBoxBtnHandler}>NEW BOX</Button>
         {/* <Button variant="outlined" size="small"  startIcon={<DownloadIcon />} 
             onClick={exportFileToJSON}>Export</Button> */}
     </div>
   );
 
+  const addNewItemModalElem = (
+    <AddNewItemModal 
+        showModal={showAddNewItemModal}
+        setShowModal={setShowAddNewItemModal}
+    />
+  )
+
+  const boxItemsModalElem = (
+    <BoxItemsModal
+      showModal={showBoxItemModal}
+      fetchBoxData={fetchBoxesData}
+      setShowModal={setShowBoxItemModal}
+    />
+  )
   const mtable = useMaterialReactTable({ 
     data: boxesData, columns,
     initialState: { columnVisibility: { box_creator: false } },
@@ -217,6 +247,7 @@ const BoxTable = () => {
     <>
         <h3>Box Table</h3>
         { buttonSetElem }
+        { boxItemsModalElem }
         { mainBoxElem }
         { spinner && <SpinnerComp/> }
     </>

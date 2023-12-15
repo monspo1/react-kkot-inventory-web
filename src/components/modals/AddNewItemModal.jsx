@@ -9,9 +9,8 @@ import moment from 'moment';
 import SpinnerComp from './../common/SpinnerComp';
 import { addDoc, collection } from 'firebase/firestore'; 
 import { db } from '../../utils/firebase'; 
-
-import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
+// import 'react-data-grid/lib/styles.css';
 
 const AddNewItemModal = (props) => {
   

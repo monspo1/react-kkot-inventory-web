@@ -29,7 +29,7 @@ function Home() {
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <TabList onChange={handleChange} aria-label="lab API tabs example">
                 <Tab label="Boxes Table" value="1" />
-                <Tab label="Items Master Table" value="2" />
+                <Tab label="Master Items Table" value="2" />
                 <Tab label="Members Table" value="3" />
               </TabList>
             </Box>

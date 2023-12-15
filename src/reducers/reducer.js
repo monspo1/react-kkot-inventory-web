@@ -1,6 +1,6 @@
 import { //SET_CURRENT_LOGGEDIN_USER
     SET_LOADER_STATUS, SET_MASTER_BOX_ITEMS, SET_BOXES_DATA, SET_BOX_LABEL_DATA,
-    SET_MEMBERS_DATA, SET_ERROR_OBJECT, SET_INFO_MESSAGE,
+    SET_MEMBERS_DATA, SET_ERROR_OBJECT, SET_INFO_MESSAGE, SET_BOX_ITEMS_DATA,
 } from '../constants/action-types';
 // import moment from 'moment';
 
@@ -9,6 +9,7 @@ const initialState = {
     loading: false,
     masterBoxItems: [],
     boxesData: [],
+    boxItemsData: [],
     boxLabelData: [],
     membersData: [],
     errorObject: null,
@@ -63,7 +64,13 @@ const rootReducer = (state = initialState, action) => {
                 infoMessage: action.payload,
                 loading: false,
             });
-
+            
+        case SET_BOX_ITEMS_DATA:
+            return Object.assign({}, { ...state, 
+                boxItemsData: action.payload,
+                loading: false,
+            });
+            
         default: 
             return state;
     }

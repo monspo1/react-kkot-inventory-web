@@ -5,16 +5,14 @@ import { convertStringNonUndefinedToNumber, getUniqueId, snakeCaseWord, itemCate
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-// import moment from 'moment';
 import SpinnerComp from './../common/SpinnerComp';
-import { MaterialReactTable, useMaterialReactTable,
-    // MRT_GlobalFilterTextField, MRT_ToggleFiltersButton, 
-} from 'material-react-table';
+import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
 import { columnsForMasterTable } from './../../constants/tableColumns'
 import * as XLSX from 'xlsx';  // working. We can use XLSX.read()
-// import api from '../../api/api'
-import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
+// import moment from 'moment';
+// import api from '../../api/api'
+// import 'react-data-grid/lib/styles.css';
 
 const UploadFileModal = (props) => {
 

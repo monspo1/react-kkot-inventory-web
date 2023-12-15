@@ -7,6 +7,7 @@ export const SET_BOX_LABEL_DATA = 'SET_BOX_LABEL_DATA'
 export const SET_MEMBERS_DATA = 'SET_MEMBERS_DATA'
 export const SET_ERROR_OBJECT = 'SET_ERROR_OBJECT'
 export const SET_INFO_MESSAGE = 'SET_INFO_MESSAGE'
+export const SET_BOX_ITEMS_DATA = 'SET_BOX_ITEMS_DATA'
 
 // export function setCurLoggedInUser (payload) {
 //     return  { type: SET_CURRENT_LOGGEDIN_USER, payload };
@@ -39,5 +40,9 @@ export function setErrorObject (payload) {
 export function setInfoMessage (payload) {
     return  { type: SET_INFO_MESSAGE, payload };
 };
+
+export function setBoxItemData (payload) {
+    return { type: SET_BOX_ITEMS_DATA, payload };
+}
 
 
