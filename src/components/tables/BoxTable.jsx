@@ -7,7 +7,7 @@ import 'firebase/firestore';
 import { collection, getDocs, Timestamp, writeBatch, doc, query, where, orderBy, limit } from 'firebase/firestore'; 
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../utils/firebase'; 
-import { setLoaderStatus, setBoxesData, setBoxLabelData } from '../../actions/action'
+import { setLoaderStatus, setBoxesData, setBoxItemData, setBoxLabelData } from '../../actions/action'
 import Button from '@mui/material/Button';
 import PrintIcon from '@mui/icons-material/Print';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -20,7 +20,7 @@ import moment from 'moment';
 const BoxTable = () => {
   const [showAddNewItemModal, setShowAddNewItemModal] = useState(false);
   const [showBoxItemModal, setShowBoxItemModal] = useState(false);
-  
+  const [localBoxInitial, setLocalBoxInitial] = useState('')
 
   // const curLoggedinUser = useSelector(state => state.curLoggedinUser);
   const spinner = useSelector(state => state.loading);
@@ -34,7 +34,8 @@ const BoxTable = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        fetchBoxesData();
+        // fetchBoxesData();
+        fetchAllBoxesAndItemsData();
       }
     });    
     return () => unsubscribe(); // Clean up subscription on unmount
@@ -62,6 +63,43 @@ const BoxTable = () => {
     console.log('boxesData: ', receivedData)
     dispatch(setBoxesData(receivedData))
   };
+
+  const fetchAllBoxesAndItemsData = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const boxCollection = collection(db, 'boxes');
+    // const boxQuery = query(boxCollection, where("updated", ">=", today));
+    // const boxSnapshot = await getDocs(boxQuery);
+    const boxSnapshot = await getDocs(boxCollection);  // no query
+        
+    const allBoxesData = await Promise.all(boxSnapshot.docs.map(async (doc) => {
+      const data = doc.data();
+      for (let field in data) {
+        if (data[field] instanceof Timestamp) {
+          data[field] = data[field].toDate().toISOString();
+        }
+      }
+      
+      const boxItemsCollection = collection(db, 'boxes', doc.id, 'box_items');
+      const boxItemsSnapshot = await getDocs(boxItemsCollection);
+      
+      const boxItemsData = boxItemsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        for (let field in data) {
+          if (data[field] instanceof Timestamp) {
+            data[field] = data[field].toDate().toISOString();
+          }
+        }
+        return { ...data, id: doc.id };
+      });
+      
+      return { ...data, id: doc.id, box_items: boxItemsData };
+    }));
+    console.log('allBoxesData: ', allBoxesData)
+    dispatch(setBoxesData(allBoxesData))
+    return allBoxesData;
+  }
 
   const uploadJsonToCollection = () => {
     // console.log('masterBoxItems: ', masterBoxItems)
@@ -114,40 +152,40 @@ const BoxTable = () => {
     setShowBoxItemModal(true)
   }
 
-
   const fetchAllDataForPrint = async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const allBoxesData = await fetchAllBoxesAndItemsData();
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
     
-    const boxCollection = collection(db, 'boxes');
-    const boxQuery = query(boxCollection, where("updated", ">=", today));
-    const boxSnapshot = await getDocs(boxQuery);
+    // const boxCollection = collection(db, 'boxes');
+    // const boxQuery = query(boxCollection, where("updated", ">=", today));
+    // const boxSnapshot = await getDocs(boxQuery);
     
-    const allBoxesData = await Promise.all(boxSnapshot.docs.map(async (doc) => {
-      const data = doc.data();
-      for (let field in data) {
-        if (data[field] instanceof Timestamp) {
-          data[field] = data[field].toDate().toISOString();
-        }
-      }
+    // const allBoxesData = await Promise.all(boxSnapshot.docs.map(async (doc) => {
+    //   const data = doc.data();
+    //   for (let field in data) {
+    //     if (data[field] instanceof Timestamp) {
+    //       data[field] = data[field].toDate().toISOString();
+    //     }
+    //   }
       
-      const boxItemsCollection = collection(db, 'boxes', doc.id, 'box_items');
-      const boxItemsSnapshot = await getDocs(boxItemsCollection);
+    //   const boxItemsCollection = collection(db, 'boxes', doc.id, 'box_items');
+    //   const boxItemsSnapshot = await getDocs(boxItemsCollection);
       
-      const boxItemsData = boxItemsSnapshot.docs.map((doc) => {
-        const data = doc.data();
-        for (let field in data) {
-          if (data[field] instanceof Timestamp) {
-            data[field] = data[field].toDate().toISOString();
-          }
-        }
-        return { ...data, id: doc.id };
-      });
+    //   const boxItemsData = boxItemsSnapshot.docs.map((doc) => {
+    //     const data = doc.data();
+    //     for (let field in data) {
+    //       if (data[field] instanceof Timestamp) {
+    //         data[field] = data[field].toDate().toISOString();
+    //       }
+    //     }
+    //     return { ...data, id: doc.id };
+    //   });
       
-      return { ...data, id: doc.id, box_items: boxItemsData };
-    }));
+    //   return { ...data, id: doc.id, box_items: boxItemsData };
+    // }));
     
-    // console.log('allBoxesData: ', allBoxesData); 
+    console.log('allBoxesData: ', allBoxesData); 
     dispatch(setBoxLabelData(allBoxesData));
 
     let str = 'LABEL, CONTENTS, , LABEL, CONTENTS\n';
@@ -228,14 +266,29 @@ const BoxTable = () => {
   const boxItemsModalElem = (
     <BoxItemsModal
       showModal={showBoxItemModal}
-      fetchBoxData={fetchBoxesData}
+      fetchBoxData={fetchAllBoxesAndItemsData} // fetchBoxData={fetchBoxesData}
+      boxInitial={localBoxInitial}
       setShowModal={setShowBoxItemModal}
     />
-  )
+  );
+
   const mtable = useMaterialReactTable({ 
     data: boxesData, columns,
-    initialState: { columnVisibility: { box_creator: false } },
-   });
+    muiTableBodyRowProps: ({ row }) => ({
+      onClick: (event) => {
+        console.info('clicked row: ', row);
+        setLocalBoxInitial(row.original.box_initial)
+        dispatch(setBoxItemData(row.original.box_items))
+        setShowBoxItemModal(true)
+        
+      },
+      sx: { cursor: 'pointer', },
+    }),
+    initialState: { 
+      pagination: { pageSize: 15,},
+      columnVisibility: { box_creator: false } 
+    },
+  });
 
   const mainBoxElem = (
     <div className="div-for-material-react-box-table">

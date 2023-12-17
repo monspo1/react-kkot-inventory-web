@@ -183,7 +183,7 @@ export const columnsForBoxItemsTable = [
         size: 150,
     },
     {
-        accessorKey: 'expiration', //normal accessorKey
+        accessorKey: 'item_expiration', //normal accessorKey
         header: 'Expiration',
         Header: ({column}) => <div>{column.columnDef.header}<span className="red-asterik-span">*</span></div>,
         size: 180,
@@ -206,6 +206,33 @@ export const columnsForBoxItemsTable = [
         //       <DatePicker label="" defaultValue={dateValue} /> :
         //       <div>{dateValue.format('MM/DD/YYYY')}</div>
         //   },
+        Cell: ({ cell, row }) => {
+            const value = cell.getValue();
+            let date;
+            if (value.includes('-')) {
+                date = moment(value, moment.ISO_8601);
+            } else {
+                date = moment(value, 'MM/DD/YYYY');
+            }
+            return date.isValid() ? date.format('MM/DD/YYYY, HH:mm') : 'Invalid date';
+
+        },
+        muiTableBodyCellProps: ({cell}) => {
+            const value = cell.getValue();
+            let date;
+            if (value.includes('-')) {
+                date = moment(value, moment.ISO_8601);
+            } else {
+                date = moment(value, 'MM/DD/YYYY');
+            }
+            const expirationCutTime = moment().add(12, 'months');
+            return {
+                sx: {
+                    backgroundColor: (value === '' || (date.isValid() && date.isBefore(expirationCutTime))) ? '#f47f7f80' : undefined,
+                    // fontWeight: cell.column.id === 'age' && (cell.getValue() === null || cell.getValue() === '') ? '700' : '400'
+                }
+            }
+        }
     },
     {
         accessorKey: 'item_count',

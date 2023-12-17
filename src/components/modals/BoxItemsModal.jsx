@@ -25,7 +25,7 @@ import './../../styles/variables.scss';
 
 
 const BoxItemsModal = (props) => {
-  const [boxInitial, setBoxInitial] = useState('')
+  const [boxInitial, setBoxInitial] = useState(props.boxInitial)
   const [barcodeToLookup, setBarcodeToLookup] = useState('');
   const [boxInitialError, setBoxInitialError] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -35,8 +35,22 @@ const BoxItemsModal = (props) => {
   const boxItemsData = useSelector(state => state.boxItemsData);
   const dispatch = useDispatch()
   const spinner = useSelector(state => state.loading);
+  const boxInitialReceived = useSelector(state => state.boxInitial);
   
   // const additionalTooltipMessage = ' required columns. '
+  useEffect(() => {
+    // console.log('props.boxInitial: ', props.boxInitial)
+  }, [])
+
+  useEffect(() => {
+    console.log('boxInitialReceived: ', boxInitialReceived)
+    setBoxInitial(boxInitialReceived);
+  }, [boxInitialReceived])
+
+  useEffect(() => {
+    console.log('props.boxInitial: ', props.boxInitial)
+    setBoxInitial(props.boxInitial);
+  }, [props.boxInitial])
 
   // useEffect(() => {
   //   console.log('columnsForBoxItemsTable: ', columnsForBoxItemsTable)
@@ -67,6 +81,7 @@ const BoxItemsModal = (props) => {
 
   useEffect(() => {
     console.log('boxItemsData: ', boxItemsData)
+    // console.log('props.boxInitial: ', props.boxInitial)
   }, [boxItemsData])
 
   const boxInitialRegex = /^[A-Za-z]{2,3}-[0-9]{1,2}$/;
@@ -134,7 +149,7 @@ const BoxItemsModal = (props) => {
     const newItemObj = {
       barcode: '', brand: '', content: '', category: '', item_count: '',
       item_price: '', item_weight_g: '', item_weight_lbs: '', item_weight_oz: '',
-      expiration: moment().format('MM/DD/YYYY') // expiration: dayjs().format('MM/DD/YYYY'), // expiration: ''
+      item_expiration: moment().format('MM/DD/YYYY') // item_expiration: dayjs().format('MM/DD/YYYY'), // item_expiration: ''
     }
     const boxItems = [...boxItemsData]
     boxItems.push(newItemObj)
@@ -164,7 +179,7 @@ const BoxItemsModal = (props) => {
         item_weight_g: foundItem.item_weight_g, 
         item_weight_lbs: foundItem.item_weight_lbs, 
         item_weight_oz: foundItem.item_weight_oz, 
-        expiration: moment().format('MM/DD/YYYY') 
+        item_expiration: moment().format('MM/DD/YYYY') 
       }
       setInfoMessage('The item with the barcode exists')
       setErrMessage('')
@@ -173,7 +188,7 @@ const BoxItemsModal = (props) => {
       newItemObj = {
         barcode: '', brand: '', content: '', category: '', item_count: '',
         item_price: '', item_weight_g: '', item_weight_lbs: '', item_weight_oz: '',
-        expiration: moment().format('MM/DD/YYYY')
+        item_expiration: moment().format('MM/DD/YYYY')
       }
       setErrMessage('The item with the barcode does NOT exist. Please contact 수녀님 to add a new item to the cloud')
       setInfoMessage('')
@@ -279,7 +294,7 @@ const BoxItemsModal = (props) => {
     // </div>
     <Form.Group className="mb-3" controlId="formForBarcode" 
       style={{ display: 'flex', width: '100%', alignItems: 'flex-end', marginTop: 20 }}>
-      <Form.Label style={{ fontWeight: '700', width: '305px' }}>Barcode:</Form.Label>
+      <Form.Label style={{ fontWeight: '700', width: '200px' }}>Barcode: </Form.Label>
       <Form.Control required type="text" placeholder="Enter a barcode" value={barcodeToLookup} 
         isInvalid={boxInitialError} onChange={handleBarcodeLookUp} style={{}} /> 
       <Button variant="outlined" size="small" startIcon={<SearchIcon />}
@@ -294,9 +309,9 @@ const BoxItemsModal = (props) => {
   const warnAlertElem = warnMessage && <CustomAlert type="warning" message={warnMessage} style={{ marginLeft: 20, marginRight: 20 }}/>;
   const additionalTooltipElem = (
     <div className="additional-tooltip-elem-boxitems-modal">
-      (1) The columns with<span className="red-asterik-span">*</span> are the required ones.
+      (1) The columns with<span className="red-asterik-span">*</span> are the required fields.
       (2) Only one weight column is required to fill out out of three units (oz, g, lbs). 
-      (3) The unit price column is optional
+      <div>(3) Only items with an expiration date more than 1 year from today are accepted. (4) The unit price column is optional</div>
     </div>
   );
 
@@ -312,7 +327,7 @@ const BoxItemsModal = (props) => {
     onEditingRowSave: (e, row) => handleSaveRow(e, row), // for row editing    
     initialState: { 
       density: 'compact',
-      pagination: { pageSize: 15 }
+      pagination: { pageSize: 15, },
     },
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: 'flex', gap: '0px' }}>
@@ -356,8 +371,11 @@ const BoxItemsModal = (props) => {
       { warnAlertElem }
       <Modal.Footer>
         <Button variant="danger" style={{ marginLeft: '10px' }} onClick={handleClose}>Cancel</Button>
-        <Button variant="primary" style={{ marginLeft: '10px' }} type="submit" 
-          disabled={shouldDisableSubmitBtn()} onClick={handleSubmit}>Submit</Button>
+        <Button variant="primary" type="submit" //disabled={shouldDisableSubmitBtn()} 
+          style={{ marginLeft: '10px', color: shouldDisableSubmitBtn() ? '#b8b8b8' : 'white',
+            backgroundColor: shouldDisableSubmitBtn() ? '#e2e2e2' : '#3e9cfe',
+          }} 
+          onClick={handleSubmit}>Submit</Button>
       </Modal.Footer> 
     </Modal>
   </>);

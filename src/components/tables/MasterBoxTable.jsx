@@ -200,6 +200,7 @@ const MasterBoxTable = () => {
         onChangePage: handlePageChange,
         initialState: {
             density: 'compact',
+            pagination: { pageSize: 15,},
             showColumnFilters: false,
             sorting: [
                 {
