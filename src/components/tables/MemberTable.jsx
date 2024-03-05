@@ -9,15 +9,32 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../utils/firebase'; 
 import { setLoaderStatus, setBoxesData } from '../../actions/action'
 import Button from '@mui/material/Button';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SpinnerComp from '../common/SpinnerComp';
 
 const MemberTable = () => {
+  // const [showRoleModal, setShowRoleModal] = useState(false);
+
   const spinner = useSelector(state => state.loading);
   const membersData = useSelector(state => state.membersData);
   
-  return (
+  // const assignRoleBtnClickHandler = (e) => {
+  //   console.log('assignRoleBtn')
+  // }
+  
+  // const buttonSetElem = (
+  //   <div className="div-for-master-box-items-buttons">
+  //       <Button variant="outlined" size="small" startIcon={<AddCircleOutlineIcon />} 
+  //           onClick={assignRoleBtnClickHandler}>Assign ROLE</Button>
+  //   </div>
+  // );
+
+  return (<>
     <div>MEMBER</div>
-  )
+    {/* { buttonSetElem } */}
+  </>)
 }
 
 export default MemberTable;

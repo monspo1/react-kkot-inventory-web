@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { //setCurLoggedInUser, 
+import { // setCurLoggedInUser, 
   setLoaderStatus } from './../actions/action'
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import SpinnerComp from './../components/common/SpinnerComp';
+import CustomAlert from '../components/common/CustomAlert'
 
 function EmailPwdLogin (props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const [errMessage, setErrMessage] = useState('');
+
   const spinner = useSelector(state => state.loading);
 
   const dispatch = useDispatch()
@@ -37,6 +40,8 @@ function EmailPwdLogin (props) {
           props.onClose(true);
         }).catch((error) => {
           console.log('error: ', error)
+          setErrMessage(error.message)
+          dispatch(setLoaderStatus(false));
         });
     }
   }
@@ -44,17 +49,21 @@ function EmailPwdLogin (props) {
   const shouldDisableLoginBtn = () => {
     return !(email !== "" && password !== "" && emailError === false && passwordError === false)
   }
+
+  const warnAlertElem = errMessage && 
+    <CustomAlert type="danger" message={errMessage} style={{ paddingBottom: 15 }}/>;
   
   return (
     <div>
-      <TextField id="textfield-for-login-email" variant="outlined" 
-        type="email" label="Email" fullWidth
-        value={email} onChange={handleEmailChange} 
+      { warnAlertElem }
+      <TextField id="textfield-for-login-email" name="login-email" 
+        type="email" label="Email" fullWidth variant="outlined" 
+        value={email} onChange={handleEmailChange} style={{ marginBottom: '10px'}}
         error={emailError} helperText={emailError ? "Invalid email address." : ""}
       />
 
-      <TextField id="textfield-for-login-pwd" variant="outlined" 
-        type="password" label="Password" fullWidth
+      <TextField id="textfield-for-login-pwd" name="login-password"
+        type="password" label="Password" fullWidth  variant="outlined" 
         value={password} onChange={handlePasswordChange} 
         error={passwordError} helperText={passwordError ? "Password should be at least 6 characters." : ""}
       />

@@ -22,7 +22,7 @@ function App() {
         <Router>
           <Navbar bg="dark" variant="dark" className="navbar-top">
             <Container>
-              <Navbar.Brand>KKot NJ Project</Navbar.Brand>
+              <Navbar.Brand>NJ KKot Inventory Project</Navbar.Brand>
               <div style={{ position: 'absolute', top: 5, right: '8px', zIndex: 2000, widt: '250px' }}>
                 <LoginSignupModal/>
               </div>

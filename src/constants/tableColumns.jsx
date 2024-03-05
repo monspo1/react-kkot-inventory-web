@@ -1,10 +1,12 @@
 import { Box, Button, IconButton, Tooltip, } from '@mui/material';
 import moment from 'moment'
-import { itemCategoryArr } from '../utils/helpers'
+import { itemCategoryArr, itemWeightUnitArr } from '../utils/helpers'
 // import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 // import TextField from '@mui/material/TextField';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+// import { DatePicker, DateRangePicker } from '@mui/x-date-pickers';
+
 import dayjs from 'dayjs';
 import './../styles/variables.scss';
 
@@ -12,32 +14,27 @@ export const columnsForBoxTable = [
     {
         accessorKey: 'box_initial', //access nested data with dot notation
         header: 'Box Initial',
-        // size: 150,
     },
     {
         accessorKey: 'box_creator',
-        header: 'Creators',
-        // size: 150,
+        header: 'Created by',
+        Cell: ({ cell }) => cell.getValue()?.email,
     },
     {
         accessorKey: 'items_count',
         header: 'Item Count',
-        // size: 150,
     },
     {
         accessorKey: 'items_weight',
         header: 'Total Weight (lbs)',
-        // size: 150,
     },
     {
         accessorKey: 'items_price',
         header: 'Total Price ($)',
-        // size: 150,
     },
     {
         accessorKey: 'updated', //normal accessorKey
         header: 'Created At',
-        // size: 150,
         Cell: ({ cell }) => moment(cell.getValue()).format('MM/DD/YYYY, HH:MM'),
     },
     
@@ -148,20 +145,37 @@ export const columnsForBoxItemsTable = [
         Header: ({column}) => <div>{column.columnDef.header}<span className="red-asterik-span">*</span></div>,
         size: 200,
     },
+    // {
+    //     accessorKey: 'item_weight_oz',
+    //     header: 'Unit (oz)',
+    //     size: 80,
+    // },
+    // {
+    //     accessorKey: 'item_weight_g',
+    //     header: 'Unit (g)',
+    //     size: 80,
+    // },
+    // {
+    //     accessorKey: 'item_weight_lbs',
+    //     header: 'Unit (lbs)',
+    //     size: 80,
+    // },
     {
-        accessorKey: 'item_weight_oz',
-        header: 'Unit (oz)',
+        accessorKey: 'item_weight',
+        header: 'Weight',
+        Header: ({column}) => <div>{column.columnDef.header}<span className="red-asterik-span">*</span></div>,
         size: 80,
     },
     {
-        accessorKey: 'item_weight_g',
-        header: 'Unit (g)',
-        size: 80,
-    },
-    {
-        accessorKey: 'item_weight_lbs',
-        header: 'Unit (lbs)',
-        size: 80,
+        accessorKey: 'weight_unit',
+        header: 'Weight Unit',
+        editVariant: 'select',
+        editSelectOptions: itemWeightUnitArr,
+        Cell: ({ cell }) =>  cell.getValue(),
+        muiEditTextFieldProps: {
+          select: true,
+        },
+        size: 150,
     },
     {
         accessorKey: 'item_price',
@@ -182,6 +196,7 @@ export const columnsForBoxItemsTable = [
         },
         size: 150,
     },
+    /*
     {
         accessorKey: 'item_expiration', //normal accessorKey
         header: 'Expiration',
@@ -208,6 +223,7 @@ export const columnsForBoxItemsTable = [
         //   },
         Cell: ({ cell, row }) => {
             const value = cell.getValue();
+            // console.log('date value: ', value)
             let date;
             if (value.includes('-')) {
                 date = moment(value, moment.ISO_8601);
@@ -215,24 +231,33 @@ export const columnsForBoxItemsTable = [
                 date = moment(value, 'MM/DD/YYYY');
             }
             return date.isValid() ? date.format('MM/DD/YYYY, HH:mm') : 'Invalid date';
-
         },
-        muiTableBodyCellProps: ({cell}) => {
-            const value = cell.getValue();
-            let date;
-            if (value.includes('-')) {
-                date = moment(value, moment.ISO_8601);
-            } else {
-                date = moment(value, 'MM/DD/YYYY');
-            }
-            const expirationCutTime = moment().add(12, 'months');
-            return {
-                sx: {
-                    backgroundColor: (value === '' || (date.isValid() && date.isBefore(expirationCutTime))) ? '#f47f7f80' : undefined,
-                    // fontWeight: cell.column.id === 'age' && (cell.getValue() === null || cell.getValue() === '') ? '700' : '400'
-                }
-            }
-        }
+        // muiTableBodyCellProps: ({cell}) => { // !!!seems not working!!!
+        //     const value = cell.getValue();
+        //     let date;
+        //     if (value.includes('-')) {
+        //         date = moment(value, moment.ISO_8601);
+        //     } else {
+        //         date = moment(value, 'MM/DD/YYYY');
+        //     }
+        //     const expirationCutTime = moment().add(1, 'years');
+        //     return {
+        //         sx: {
+        //             backgroundColor: (value === '' || (date.isValid() && date.isBefore(expirationCutTime))) ? '#f47f7f80' : undefined,                    
+        //         }
+        //     }
+        // }
+    },
+    //*/
+    {
+        accessorKey: 'item_expiration',
+        header: 'Date',
+        enableEditing: false,
+        Cell: ({ cell }) => {
+            // console.log('cell.getValue(): ', cell.getValue(), " | cell.value", cell.value )
+            const dateValue = dayjs(cell.getValue());
+            return <DatePicker label="" defaultValue={dateValue} slotProps={{ textField: { size: 'small' } }} />
+        },
     },
     {
         accessorKey: 'item_count',

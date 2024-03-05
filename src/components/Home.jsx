@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React from 'react';
+import { getAuth } from 'firebase/auth';
 import MasterBoxTable from './tables/MasterBoxTable';
 import BoxTable from './tables/BoxTable';
 import MemberTable from './tables/MemberTable';
 
-
-import reactLogo from './../assets/react.svg'
-import viteLogo from './../assets/vite.svg' //'./../../vite.svg'
-// import { useDispatch, useSelector } from 'react-redux';
+// import reactLogo from './../assets/react.svg'
+// import viteLogo from './../assets/vite.svg' //'./../../vite.svg'
+import { useSelector } from 'react-redux';
 // import {
 //   MaterialReactTable,
 //   useMaterialReactTable,
@@ -20,17 +20,22 @@ import TabPanel from '@mui/lab/TabPanel';
 
 function Home() {
     const [selectedTabValue, setSelectedTabValue] = React.useState('1');
+    const auth = getAuth();
+    const curUserRole = useSelector(state => state.curUserRole);
+
     const handleChange = (event, newValue) => {
       setSelectedTabValue(newValue);
     };
+    const shouldDisableButtonSet = !auth.currentUser || curUserRole !== 'admin'
+    
     return (<>
         <div className="div-for-home-tab-content" >
           <TabContext value={selectedTabValue}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <TabList onChange={handleChange} aria-label="lab API tabs example">
-                <Tab label="Boxes Table" value="1" />
-                <Tab label="Master Items Table" value="2" />
-                <Tab label="Members Table" value="3" />
+                <Tab label="Boxes Table" value="1"/>
+                <Tab label="Master Items Table" value="2" disabled/>
+                <Tab label="Members Table" value="3" disabled/>
               </TabList>
             </Box>
             <TabPanel value="1"><BoxTable/></TabPanel>
