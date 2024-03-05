@@ -9,7 +9,7 @@ import { getAuth } from 'firebase/auth';
 // const firebaseConfig = myFirebaseConfig;
 
 //######################################################################
-//## GitHub Actions workflow
+//## GitHub Actions workflow 
 //######################################################################
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,

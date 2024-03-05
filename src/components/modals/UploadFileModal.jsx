@@ -5,16 +5,14 @@ import { convertStringNonUndefinedToNumber, getUniqueId, snakeCaseWord, itemCate
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
-// import moment from 'moment';
 import SpinnerComp from './../common/SpinnerComp';
-import { MaterialReactTable, useMaterialReactTable,
-    // MRT_GlobalFilterTextField, MRT_ToggleFiltersButton, 
-} from 'material-react-table';
+import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
 import { columnsForMasterTable } from './../../constants/tableColumns'
 import * as XLSX from 'xlsx';  // working. We can use XLSX.read()
-// import api from '../../api/api'
-import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
+// import moment from 'moment';
+// import api from '../../api/api'
+// import 'react-data-grid/lib/styles.css';
 
 const UploadFileModal = (props) => {
 
@@ -30,7 +28,7 @@ const UploadFileModal = (props) => {
     const columnsForMaterialTable = useMemo(() => columnsForMasterTable, []);
 
     useEffect(() => {
-        console.log('Updated boxItemsMasterModel: ', boxItemsMasterModel);
+        // console.log('Updated boxItemsMasterModel: ', boxItemsMasterModel);
     }, [boxItemsMasterModel]);
 
     useEffect(() => {
@@ -108,7 +106,7 @@ const UploadFileModal = (props) => {
 
         categoryMap.forEach((count, category) => {
             const index = itemCategoryArr.findIndex(i => i.value === category) 
-            console.log('category: ', category, ' | Correct? ', (index === -1) ? "No" : "Yes", ' | Count: ', count)
+            // console.log('category: ', category, ' | Correct? ', (index === -1) ? "No" : "Yes", ' | Count: ', count)
         })
         // arrOfObjectsForRow.filter(elem => elem.is_reviewed === false)
         // let duplicates = arrOfObjectsForRow.filter(r => r.isDuplicate);
@@ -153,7 +151,7 @@ const UploadFileModal = (props) => {
         // tempArrCorrectCategory.forEach(i => console.log(i.category))
         setDataForMaterialReactTable(arrOfObjectsForRow.slice(0, 5));
         dispatch(setLoaderStatus(false));
-        tempArrCorrectCategory.forEach(i => console.log(i.barcode,  " | ", i.review_reason))
+        // tempArrCorrectCategory.forEach(i => console.log(i.barcode,  " | ", i.review_reason))
         // setDataForMasterBoxItemsLocal(arrOfObjectsForRow);
         setDataForMasterBoxItemsLocal(tempArrCorrectCategory);
         // TEMP
@@ -196,6 +194,24 @@ const UploadFileModal = (props) => {
     const mtable = useMaterialReactTable({
         columns: columnsForMaterialTable,
         data: dataForMaterialReactTable,
+        initialState: {
+            density: 'compact',
+            pagination: { pageSize: 15,},
+            showColumnFilters: false,
+            sorting: [
+                {
+                    id: 'updated_at',
+                    desc: true
+                }
+            ],
+        },
+        muiTableHeadCellProps: { // globally applicable (individual style should be in the column config)
+            sx: {
+                background: '#eee',
+                borderRight: '1px solid rgba(224,224,224,1)',
+                color: 'black'
+            }
+          }
     });
     
     return (<>

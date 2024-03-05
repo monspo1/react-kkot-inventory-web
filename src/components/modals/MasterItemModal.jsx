@@ -1,33 +1,52 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setLoaderStatus, setMasterBoxItems, setBoxesData } from '../../actions/action'
-import { convertStringNonUndefinedToNumber, getUniqueId, getRandomTestDate } from '../../utils/helpers'
+import { setLoaderStatus } from '../../actions/action'
+import { getUniqueId } from '../../utils/helpers'
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
 import moment from 'moment';
-import SpinnerComp from './../common/SpinnerComp';
+import SpinnerComp from '../common/SpinnerComp';
+import CustomAlert from '../common/CustomAlert';
 import { addDoc, collection } from 'firebase/firestore'; 
 import { db } from '../../utils/firebase'; 
-
-import 'react-data-grid/lib/styles.css';
 import './../../styles/variables.scss';
+// import 'react-data-grid/lib/styles.css';
 
-const AddNewItemModal = (props) => {
-  
+const MasterItemModal = (props) => {
+  // console.log('curModalItem', props.curModalItem);
+
   const [barcode, setBarcode] = useState('');
   const [brand, setBrand] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
   const [weight, setWeight] = useState({oz: '', lbs: '', g: '' });
   const [price, setPrice] = useState('');
+  const [alertMsg, setAlertMsg] = useState('')
   const [categoryError, setCategoryError] = useState(false);
   const [weightError, setWeightError] = useState(false);
   const [priceError, setPriceError] = useState(false);
   const [validated, setValidated] = useState(false);
-
   const dispatch = useDispatch()
   const spinner = useSelector(state => state.loading);
+
+  useEffect(() => {
+    if (Object.keys(props.curModalItem).length > 0){
+      // console.log('props.curModalItem: ', props.curModalItem)
+      setBarcode(props.curModalItem.barcode)
+      setBrand(props.curModalItem.brand)
+      setContent(props.curModalItem.content)
+      setCategory(props.curModalItem.category)
+      setWeight({
+        oz: props.curModalItem.item_weight_oz,
+        lbs: props.curModalItem.item_weight_lbs,
+        g: props.curModalItem.item_weight_g,
+      });
+      setPrice(props.curModalItem.item_price)
+      setAlertMsg(props.curModalItem.review_reason)
+    }
+  }, [props.curModalItem]);
 
   useEffect(() => {
     setCategoryError(validated && category === '');
@@ -85,7 +104,7 @@ const AddNewItemModal = (props) => {
     setPrice(value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
 
@@ -103,9 +122,8 @@ const AddNewItemModal = (props) => {
     } else if(category === '') {
       setCategoryError(true);
       event.stopPropagation();
-    } else {
-      // form 제출 로직
-      // dispatch(setLoaderStatus(true));
+    } else { // form 제출 로직
+      dispatch(setLoaderStatus(true));
 
       const payloadObj = {
         barcode: barcode,
@@ -123,16 +141,48 @@ const AddNewItemModal = (props) => {
         // updated_at: new Date().toISOString(), // ???
         // updated_at: moment().format('MM/DD/YYYY, h:mm A') // ???
       }
-      console.log('payloadObj: ', payloadObj)
+      // console.log('payloadObj: ', payloadObj)
 
-      //# send api call to firestore
-      addDoc(collection(db, 'master-items'), payloadObj)
-        .then((docRef) => {
-          console.log("Document written with ID: ", docRef.id);
+      const masterItemsCollection = collection(db, 'master-items');
+      const sameBarcodeQuery = query(masterItemsCollection, where("barcode", "==", barcode));
+      const querySnapshot = await getDocs(sameBarcodeQuery);
+
+      let batch = writeBatch(db);
+      querySnapshot.forEach((doc) => {
+        // if found, delete the document
+        const docRef = doc(masterItemsCollection, doc.id);
+        batch = deleteDoc(batch, docRef);
+      });
+
+      //
+      const docRef = doc(masterItemsCollection);
+      batch = setDoc(batch, docRef, payloadObj);
+
+      await batch.commit()
+        .then(() => {
+          console.log("Batch commit succeeded.");
         })
         .catch((error) => {
           console.error("Error adding document: ", error);
         });
+
+      /** 원래의 addDoc() 코드와 제안한 setDoc() 코드의 근본적인 차이점은 다음과 같습니다:
+        1. 작업의 원자성: addDoc()는 단일 문서를 추가하는 작업만 수행합니다. 
+        반면에 setDoc()는 배치 쓰기의 일부로 사용되며, 이는 여러 개의 Firestore 작업을 한 번의 원자적인 작업으로 그룹화합니다. 
+        이런 방식은 모든 작업이 성공하거나 모든 작업이 실패하는 것을 보장하므로, 데이터의 일관성을 유지하는 데 도움이 됩니다.
+        2. 문서 ID의 생성: addDoc()는 새로운 문서를 추가할 때 자동으로 고유한 문서 ID를 생성합니다. 
+        반면에 setDoc()는 문서 참조(docRef)를 명시적으로 제공해야 하며, 이 참조는 문서의 ID를 포함합니다. 
+        이 경우, 문서 ID는 doc() 함수를 호출할 때 자동으로 생성됩니다.
+        따라서, 동일한 바코드를 가진 기존 문서를 삭제하고 새 문서를 추가하는 경우에는 setDoc()를 사용하는 것이 더 적합합니다.
+       */
+      //# (OLD - working) adding a doc to firestore
+      // addDoc(collection(db, 'master-items'), payloadObj)
+      //   .then((docRef) => {
+      //     console.log("Document written with ID: ", docRef.id);
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error adding document: ", error);
+      //   });
       
       dispatch(setLoaderStatus(false));
       setCategoryError(false);
@@ -149,11 +199,15 @@ const AddNewItemModal = (props) => {
     setCategory('');
     setWeight({oz: '', lbs: '', g: '' });
     setPrice('');
+    setAlertMsg('')
     setCategoryError(false);
     setWeightError(false);
     setPriceError(false);
     setValidated(false);
   }
+
+  const alertElem = alertMsg !== '' && <CustomAlert type="danger" message={alertMsg} />;
+    
 
   // https://react-bootstrap.netlify.app/docs/forms/validation
   return (<> 
@@ -163,6 +217,7 @@ const AddNewItemModal = (props) => {
             <Modal.Title>Add a New Master Item</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          { alertElem }
           <Form.Group className="mb-3" controlId="formForBarcode">
             <Form.Label style={{ fontWeight: '700'}}>BARCODE</Form.Label>
             <Form.Control required type="text" placeholder="Enter a barcode" value={barcode} onChange={handleBarcodeChange}/>
@@ -203,23 +258,36 @@ const AddNewItemModal = (props) => {
 
           <Form.Group className="mb-3" controlId="formForWeight">
             <Form.Label style={{ fontWeight: '700'}}>WEIGHT</Form.Label>
-            <Form.Control type="text" placeholder="Enter a weight (oz)" required isInvalid={weightError} 
-              value={weight.oz} onChange={handleWeightChange('oz')} style={{ marginBottom: '5px' }}/>
-            <Form.Control type="text" placeholder="Enter a weight (lbs)" isInvalid={weightError} 
-              value={weight.lbs} onChange={handleWeightChange('lbs')} style={{ marginBottom: '5px' }}/>
-            <Form.Control type="text" placeholder="Enter a weight (g)" isInvalid={weightError} 
+            <InputGroup>
+              <InputGroup.Text style={{ height: '38px', width: '50px'}}>oz</InputGroup.Text>
+              <Form.Control type="text" placeholder="Enter a weight (oz)" required isInvalid={weightError} 
+                value={weight.oz} onChange={handleWeightChange('oz')} style={{ marginBottom: '5px' }}/>
+            </InputGroup>
+            <InputGroup>
+              <InputGroup.Text style={{ height: '38px', width: '50px'}}>lbs</InputGroup.Text>
+              <Form.Control type="text" placeholder="Enter a weight (lbs)" isInvalid={weightError} 
+                value={weight.lbs} onChange={handleWeightChange('lbs')} style={{ marginBottom: '5px' }}/>
+            </InputGroup>
+            <InputGroup>
+              <InputGroup.Text style={{ height: '38px', width: '50px'}}>g</InputGroup.Text>
+              <Form.Control type="text" placeholder="Enter a weight (g)" isInvalid={weightError} 
               value={weight.g} onChange={handleWeightChange('g')} style={{ marginBottom: '5px' }}/>
+            </InputGroup>
             { weightError && <div className="invalid-feedback">Weight should be a valid number</div> }
             { validated && weight.oz === '' && <div className="invalid-feedback">Weight should have a non-empty number</div> }
           </Form.Group>
           
           <Form.Group className="mb-3" controlId="formForPrice">
             <Form.Label style={{ fontWeight: '700'}}>PRICE (optional)</Form.Label>
-            <Form.Control type="text" placeholder="Enter a price ($)" isInvalid={priceError} 
+            <InputGroup>
+              <InputGroup.Text style={{ height: '38px', width: '50px'}}>$</InputGroup.Text>
+              <Form.Control type="text" placeholder="Enter a price ($)" isInvalid={priceError} 
               value={price} onChange={handlePriceChange}/>
+            </InputGroup>
             { priceError && <div className="invalid-feedback">Price should be a valid number</div> }
           </Form.Group>
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="secondary" style={{ marginLeft: '10px' }} onClick={(e) => {}}>Clear</Button>
           <Button variant="primary" style={{ marginLeft: '10px' }} type="submit">Submit</Button>
@@ -232,4 +300,4 @@ const AddNewItemModal = (props) => {
   </>)
 }
 
-export default AddNewItemModal;
+export default MasterItemModal;

@@ -1,4 +1,3 @@
-// export const SET_CURRENT_LOGGEDIN_USER = 'SET_CURRENT_LOGGEDIN_USER';
 export const INCREMENT_PROJECTS_COUNT = 'INCREMENT_PROJECTS_COUNT'
 export const SET_LOADER_STATUS = 'SET_LOADER_STATUS'
 export const SET_MASTER_BOX_ITEMS = 'SET_MASTER_BOX_ITEMS'
@@ -7,6 +6,10 @@ export const SET_BOX_LABEL_DATA = 'SET_BOX_LABEL_DATA'
 export const SET_MEMBERS_DATA = 'SET_MEMBERS_DATA'
 export const SET_ERROR_OBJECT = 'SET_ERROR_OBJECT'
 export const SET_INFO_MESSAGE = 'SET_INFO_MESSAGE'
+export const SET_CUR_USER_ROLE = 'SET_CUR_USER_ROLE';
+export const SET_BOX_ITEMS_DATA = 'SET_BOX_ITEMS_DATA'
+// export const SET_BOX_INITIAL = 'SET_BOX_INITIAL'
+// export const SET_CURRENT_LOGGEDIN_USER = 'SET_CURRENT_LOGGEDIN_USER';
 
 // export function setCurLoggedInUser (payload) {
 //     return  { type: SET_CURRENT_LOGGEDIN_USER, payload };
@@ -39,5 +42,17 @@ export function setErrorObject (payload) {
 export function setInfoMessage (payload) {
     return  { type: SET_INFO_MESSAGE, payload };
 };
+
+export function setBoxItemData (payload) {
+    return { type: SET_BOX_ITEMS_DATA, payload };
+}
+
+export function setCurUserRole (payload) {
+    return  { type: SET_CUR_USER_ROLE, payload };
+}
+
+// export function setBoxInitial (payload) {
+//     return { type: SET_BOX_INITIAL, payload };
+// }
 
 

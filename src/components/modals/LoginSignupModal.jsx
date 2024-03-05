@@ -12,8 +12,8 @@ import TabPanel from '@mui/lab/TabPanel';
 import EmailPwdLogin from './../../utils/EmailPwdLogin';
 import EmailPwdSignup from './../../utils/EmailPwdSignup';
 import GoogleLogin from '../../utils/GoogleLogin';
-// import SpinnerComp from './../common/SpinnerComp';
-// import { auth } from '../../utils/firebase'; 
+import CustomAlert from '../common/CustomAlert'
+
 
 const localModalBoxStyle = {
   position: 'absolute',
@@ -31,9 +31,10 @@ const LoginSignupModal = () => {
   const [currentUser, setCurrentUser] = React.useState(null); // firebase auth 상태 추적용
   const [selectedTabValue, setSelectedTabValue] = React.useState('1');
   const [openLoginSignupModal, setOpenLoginSignupModal] = React.useState(false)
+  const [errMessage, setErrMessage] = useState('');
   // const spinner = useSelector(state => state.loading);
   const dispatch = useDispatch()
-  // const curLoggedinUser = useSelector(state => state.curLoggedinUser);
+  const curLoggedinUser = useSelector(state => state.curLoggedinUser);
   const auth = getAuth();
   const handleModalOpen = () => setOpenLoginSignupModal(true);
   const handleModalClose = () => setOpenLoginSignupModal(false);
@@ -41,7 +42,7 @@ const LoginSignupModal = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
-      console.log('auth.currentUser: ', user);
+      // console.log('auth.currentUser: ', user);
     });
 
     // cleanup function
@@ -57,18 +58,19 @@ const LoginSignupModal = () => {
     signOut(auth)
       .then(() => {
         console.log('User signed out');
-        // dispatch(setCurLoggedInUser(null));
         dispatch(setBoxesData([]));
       }).catch((error) => {
         console.log('error: ', error)
+        setErrMessage("Error: Failed to logout. Please try again")
       });
   }
 
-  // console.log('auth.currentUser: ', auth?.currentUser)
+  const warnAlertElem = errMessage && <CustomAlert type="warning" message={errMessage} style={{ marginLeft: 20, marginRight: 20 }}/>;
+
   return (<>
       { currentUser 
         ? <span style={{ zIndex: 100, color: 'wheat', }}>{currentUser.email} <Button onClick={handleLogout}>LOG OUT</Button></span>
-        : <Button onClick={handleModalOpen}>LOGIN</Button>
+        : <Button onClick={handleModalOpen}>LOGIN / SIGNUP</Button>
       }
       <Modal
         open={openLoginSignupModal}
@@ -85,13 +87,13 @@ const LoginSignupModal = () => {
                 </TabList>
               </Box>
               <TabPanel value="1">
+                { warnAlertElem }
                 <EmailPwdLogin onClose={handleModalClose} />
                 <GoogleLogin onClose={handleModalClose}/>
               </TabPanel>
               <TabPanel value="2"><EmailPwdSignup onClose={handleModalClose}/></TabPanel>
             </TabContext>
         </Box>
-        
       </Modal>
   </>);
 }

@@ -1,6 +1,7 @@
+/* eslint-disable no-case-declarations */
 import { //SET_CURRENT_LOGGEDIN_USER
-    SET_LOADER_STATUS, SET_MASTER_BOX_ITEMS, SET_BOXES_DATA, SET_BOX_LABEL_DATA,
-    SET_MEMBERS_DATA, SET_ERROR_OBJECT, SET_INFO_MESSAGE,
+    SET_LOADER_STATUS, SET_MASTER_BOX_ITEMS, SET_BOXES_DATA, SET_BOX_LABEL_DATA, // SET_BOX_INITIAL,
+    SET_MEMBERS_DATA, SET_ERROR_OBJECT, SET_INFO_MESSAGE, SET_BOX_ITEMS_DATA, SET_CUR_USER_ROLE,
 } from '../constants/action-types';
 // import moment from 'moment';
 
@@ -9,10 +10,13 @@ const initialState = {
     loading: false,
     masterBoxItems: [],
     boxesData: [],
+    boxItemsData: [],
     boxLabelData: [],
+    boxInitial: '',
     membersData: [],
     errorObject: null,
     infoMessage: "",
+    curUserRole: null,
 }
 
 const rootReducer = (state = initialState, action) => {
@@ -35,8 +39,17 @@ const rootReducer = (state = initialState, action) => {
             });
 
         case SET_BOXES_DATA: 
+            const boxesLocal = action.payload.map(b => {
+                let item_sum_count = 0;
+                b.box_items.forEach(i => {
+                    item_sum_count += Number(i.item_count);
+                });
+                b.items_count = item_sum_count;
+                // console.log(b);
+                return b;
+            })
             return Object.assign({}, { ...state, 
-                boxesData: action.payload,
+                boxesData: boxesLocal, //action.payload,
                 loading: false,
             });
 
@@ -63,6 +76,24 @@ const rootReducer = (state = initialState, action) => {
                 infoMessage: action.payload,
                 loading: false,
             });
+            
+        case SET_BOX_ITEMS_DATA:
+            return Object.assign({}, { ...state, 
+                boxItemsData: action.payload,
+                loading: false,
+            });
+
+        case SET_CUR_USER_ROLE: 
+            return Object.assign({}, { ...state, 
+                curUserRole: action.payload,
+                loading: false,
+            });
+
+        // case SET_BOX_INITIAL: 
+        //     return Object.assign({}, { ...state, 
+        //         boxItemsData: action.payload,
+        //         loading: false,
+        //     });
 
         default: 
             return state;
