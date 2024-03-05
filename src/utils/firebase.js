@@ -5,11 +5,11 @@ import { getAuth } from 'firebase/auth';
 //######################################################################
 //## Local credentials 
 //######################################################################
-import  { myFirebaseConfig } from './../../credentials/credentials'
-const firebaseConfig = myFirebaseConfig;
+// import  { myFirebaseConfig } from './../../credentials/credentials'
+// const firebaseConfig = myFirebaseConfig;
 
 //######################################################################
-//## GitHub Actions workflow
+//## GitHub Actions workflow 
 //######################################################################
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
